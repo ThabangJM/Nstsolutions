@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>State Management Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #003366;
+            margin-top: 0;
+            border-bottom: 3px solid #004C99;
+            padding-bottom: 15px;
+        }
+        .test-section {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #004C99;
+        }
+        h2 {
+            color: #004C99;
+            margin-top: 0;
+            font-size: 1.3em;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .warning { color: #ffc107; }
+        .info { color: #17a2b8; }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 State Management Test Suite</h1>
+        <p>Test the complete state management system with localStorage and database persistence</p>
+
+        <!-- StateManager Tests -->
+        <div class="test-section">
+            <h2>📦 StateManager Tests <span id="state-status" class="status-badge"></span></h2>
+            <div class="action-buttons">
+                <button onclick="testStateManager()">Test StateManager</button>
+                <button onclick="testPersistence()">Test Persistence</button>
+                <button onclick="testStateObservers()">Test Observers</button>
+                <button onclick="clearState()">Clear All State</button>
+            </div>
+            <div id="state-result" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- ChatSessionManager Tests -->
+        <div class="test-section">
+            <h2>💬 ChatSessionManager Tests <span id="chat-status" class="status-badge"></span></h2>
+            <div class="action-buttons">
+                <button onclick="testChatSessionManager()">Test Session Manager</button>
+                <button onclick="testGetAllSessions()">Get All Sessions</button>
+                <button onclick="testCreateSession()">Create Test Session</button>
+                <button onclick="testDeleteSession()">Delete Test Session</button>
+            </div>
+            <div id="chat-result" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- Integration Tests -->
+        <div class="test-section">
+            <h2>🔗 Integration Tests <span id="integration-status" class="status-badge"></span></h2>
+            <div class="action-buttons">
+                <button onclick="testFullIntegration()">Full Integration Test</button>
+                <button onclick="testPageRefresh()">Simulate Page Refresh</button>
+                <button onclick="testSessionMenu()">Test Session Menu</button>
+            </div>
+            <div id="integration-result" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- Database Tests -->
+        <div class="test-section">
+            <h2>🗄️ Database API Tests <span id="db-status" class="status-badge"></span></h2>
+            <div class="action-buttons">
+                <button onclick="testDatabaseAPI()">Test Database API</button>
+                <button onclick="testGetMessages()">Get Session Messages</button>
+                <button onclick="testSaveMessage()">Save Test Message</button>
+            </div>
+            <div id="db-result" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- Refresh Test -->
+        <div class="test-section" style="background: #fff3cd; border-left-color: #ffc107;">
+            <h2>⚠️ Page Refresh Test</h2>
+            <p>Click the button below to test state persistence across page refresh:</p>
+            <button onclick="setupRefreshTest()" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                🔄 Setup & Refresh Page
+            </button>
+            <div id="refresh-result" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Load required scripts -->
+    <script src="database-api.js"></script>
+    <script src="state-manager.js"></script>
+    <script src="chat-session-manager.js"></script>
+    <script src="state-integration.js"></script>
+
+    <script>
+        // Helper functions
+        function showResult(elementId, data, status = 'success') {
+            const el = document.getElementById(elementId);
+            el.style.display = 'block';
+            el.innerHTML = `<pre class="${status}">${typeof data === 'string' ? data : JSON.stringify(data, null, 2)}</pre>`;
+        }
+
+        function updateStatus(elementId, isSuccess) {
+            const el = document.getElementById(elementId);
+            el.className = `status-badge status-${isSuccess ? 'success' : 'error'}`;
+            el.textContent = isSuccess ? '✓ PASS' : '✗ FAIL';
+        }
+
+        // StateManager Tests
+        async function testStateManager() {
+            try {
+                console.log('Testing StateManager...');
+                
+                if (!window.StateManager) {
+                    throw new Error('StateManager not found');
+                }
+
+                // Test basic operations
+                StateManager.set('test.value', 'Hello World');
+                const value = StateManager.get('test.value');
+                
+                if (value !== 'Hello World') {
+                    throw new Error('Set/Get failed');
+                }
+
+                // Test nested paths
+                StateManager.set('user.profile.name', 'John Doe');
+                const name = StateManager.get('user.profile.name');
+                
+                const result = {
+                    status: 'SUCCESS',
+                    tests: {
+                        'Basic Set/Get': value === 'Hello World' ? '✓' : '✗',
+                        'Nested Paths': name === 'John Doe' ? '✓' : '✗',
+                        'State Size': Object.keys(StateManager.getAll()).length
+                    },
+                    currentState: StateManager.getAll()
+                };
+
+                showResult('state-result', result);
+                updateStatus('state-status', true);
+            } catch (error) {
+                showResult('state-result', { error: error.message }, 'error');
+                updateStatus('state-status', false);
+            }
+        }
+
+        async function testPersistence() {
+            try {
+                console.log('Testing persistence...');
+                
+                // Set test data
+                StateManager.set('persist.test', { timestamp: Date.now(), value: 'Test Data' });
+                
+                // Check localStorage
+                const stored = localStorage.getItem('app_state');
+                if (!stored) {
+                    throw new Error('Nothing stored in localStorage');
+                }
+
+                const parsed = JSON.parse(stored);
+                
+                showResult('state-result', {
+                    status: 'SUCCESS',
+                    localStorage: 'Data persisted',
+                    storedKeys: Object.keys(parsed),
+                    testData: parsed.persist
+                });
+                updateStatus('state-status', true);
+            } catch (error) {
+                showResult('state-result', { error: error.message }, 'error');
+                updateStatus('state-status', false);
+            }
+        }
+
+        async function testStateObservers() {
+            try {
+                console.log('Testing observers...');
+                
+                let observerCalled = false;
+                
+                const unsubscribe = StateManager.subscribe('observer.test', (newValue) => {
+                    observerCalled = true;
+                    console.log('Observer called with:', newValue);
+                });
+
+                StateManager.set('observer.test', 'Test Value');
+                
+                setTimeout(() => {
+                    showResult('state-result', {
+                        status: observerCalled ? 'SUCCESS' : 'FAILED',
+                        observerTriggered: observerCalled,
+                        message: observerCalled ? 'Observer was called successfully' : 'Observer was not called'
+                    });
+                    updateStatus('state-status', observerCalled);
+                    unsubscribe();
+                }, 100);
+            } catch (error) {
+                showResult('state-result', { error: error.message }, 'error');
+                updateStatus('state-status', false);
+            }
+        }
+
+        function clearState() {
+            StateManager.clear();
+            localStorage.clear();
+            showResult('state-result', { status: 'CLEARED', message: 'All state cleared' }, 'warning');
+        }
+
+        // ChatSessionManager Tests
+        async function testChatSessionManager() {
+            try {
+                console.log('Testing ChatSessionManager...');
+                
+                if (!window.ChatSessionManager) {
+                    throw new Error('ChatSessionManager not found');
+                }
+
+                const stats = ChatSessionManager.getSessionStats();
+                
+                showResult('chat-result', {
+                    status: 'SUCCESS',
+                    managerFound: true,
+                    sessionStats: stats
+                });
+                updateStatus('chat-status', true);
+            } catch (error) {
+                showResult('chat-result', { error: error.message }, 'error');
+                updateStatus('chat-status', false);
+            }
+        }
+
+        async function testGetAllSessions() {
+            try {
+                console.log('Testing getAllSessions...');
+                
+                const sessions = await ChatSessionManager.getAllSessions();
+                
+                showResult('chat-result', {
+                    status: 'SUCCESS',
+                    sessionCount: sessions.length,
+                    sessions: sessions
+                });
+                updateStatus('chat-status', true);
+            } catch (error) {
+                showResult('chat-result', { error: error.message }, 'error');
+                updateStatus('chat-status', false);
+            }
+        }
+
+        async function testCreateSession() {
+            try {
+                console.log('Testing createSession...');
+                
+                const sessionName = 'Test Session ' + Date.now();
+                const result = await DatabaseAPI.createChatSession(sessionName);
+                
+                showResult('chat-result', {
+                    status: 'SUCCESS',
+                    message: 'Session created',
+                    result: result
+                });
+                updateStatus('chat-status', true);
+            } catch (error) {
+                showResult('chat-result', { error: error.message }, 'error');
+                updateStatus('chat-status', false);
+            }
+        }
+
+        async function testDeleteSession() {
+            try {
+                console.log('Testing deleteSession...');
+                
+                const sessions = await ChatSessionManager.getAllSessions();
+                if (sessions.length === 0) {
+                    throw new Error('No sessions to delete');
+                }
+
+                const sessionId = sessions[0].id;
+                const result = await ChatSessionManager.deleteSession(sessionId);
+                
+                showResult('chat-result', {
+                    status: 'SUCCESS',
+                    message: 'Session deleted',
+                    deletedId: sessionId,
+                    result: result
+                });
+                updateStatus('chat-status', true);
+            } catch (error) {
+                showResult('chat-result', { error: error.message }, 'error');
+                updateStatus('chat-status', false);
+            }
+        }
+
+        // Integration Tests
+        async function testFullIntegration() {
+            try {
+                console.log('Running full integration test...');
+                
+                const results = {
+                    stateManager: !!window.StateManager,
+                    chatSessionManager: !!window.ChatSessionManager,
+                    databaseAPI: !!window.DatabaseAPI,
+                    localStorage: !!localStorage.getItem('app_state'),
+                    currentUser: null,
+                    sessionCount: 0
+                };
+
+                // Test database connection
+                if (window.DatabaseAPI) {
+                    const user = await DatabaseAPI.getCurrentUser();
+                    results.currentUser = user;
+                    
+                    const sessions = await ChatSessionManager.getAllSessions();
+                    results.sessionCount = sessions.length;
+                }
+
+                const allPassed = Object.values(results).every(v => v !== false && v !== null);
+                
+                showResult('integration-result', {
+                    status: allPassed ? 'SUCCESS' : 'PARTIAL',
+                    results: results
+                });
+                updateStatus('integration-status', allPassed);
+            } catch (error) {
+                showResult('integration-result', { error: error.message }, 'error');
+                updateStatus('integration-status', false);
+            }
+        }
+
+        async function testPageRefresh() {
+            showResult('integration-result', {
+                status: 'INFO',
+                message: 'Use the "Setup & Refresh Page" button below to test page refresh persistence'
+            }, 'info');
+        }
+
+        async function testSessionMenu() {
+            try {
+                console.log('Testing session menu...');
+                
+                if (typeof toggleSessionMenu !== 'function') {
+                    throw new Error('toggleSessionMenu function not found');
+                }
+
+                showResult('integration-result', {
+                    status: 'INFO',
+                    message: 'Session menu function available. Check main app for UI test.'
+                }, 'info');
+                updateStatus('integration-status', true);
+            } catch (error) {
+                showResult('integration-result', { error: error.message }, 'error');
+                updateStatus('integration-status', false);
+            }
+        }
+
+        // Database Tests
+        async function testDatabaseAPI() {
+            try {
+                console.log('Testing DatabaseAPI...');
+                
+                const user = await DatabaseAPI.getCurrentUser();
+                const stats = await DatabaseAPI.getStats();
+                
+                showResult('db-result', {
+                    status: 'SUCCESS',
+                    currentUser: user,
+                    stats: stats
+                });
+                updateStatus('db-status', true);
+            } catch (error) {
+                showResult('db-result', { error: error.message }, 'error');
+                updateStatus('db-status', false);
+            }
+        }
+
+        async function testGetMessages() {
+            try {
+                console.log('Testing getChatMessages...');
+                
+                const sessions = await ChatSessionManager.getAllSessions();
+                if (sessions.length === 0) {
+                    throw new Error('No sessions available');
+                }
+
+                const sessionId = sessions[0].id;
+                const messages = await ChatSessionManager.getSessionMessages(sessionId);
+                
+                showResult('db-result', {
+                    status: 'SUCCESS',
+                    sessionId: sessionId,
+                    messageCount: messages.length,
+                    messages: messages
+                });
+                updateStatus('db-status', true);
+            } catch (error) {
+                showResult('db-result', { error: error.message }, 'error');
+                updateStatus('db-status', false);
+            }
+        }
+
+        async function testSaveMessage() {
+            try {
+                console.log('Testing saveChatMessage...');
+                
+                const sessions = await ChatSessionManager.getAllSessions();
+                let sessionId;
+                
+                if (sessions.length === 0) {
+                    const result = await DatabaseAPI.createChatSession('Auto Test Session');
+                    sessionId = result.session.id;
+                } else {
+                    sessionId = sessions[0].id;
+                }
+
+                const result = await DatabaseAPI.saveChatMessage(
+                    sessionId,
+                    'user',
+                    'Test message at ' + new Date().toLocaleTimeString(),
+                    50
+                );
+                
+                showResult('db-result', {
+                    status: 'SUCCESS',
+                    message: 'Message saved',
+                    result: result
+                });
+                updateStatus('db-status', true);
+            } catch (error) {
+                showResult('db-result', { error: error.message }, 'error');
+                updateStatus('db-status', false);
+            }
+        }
+
+        // Refresh Test
+        function setupRefreshTest() {
+            // Store test data
+            StateManager.set('refresh.test', {
+                timestamp: Date.now(),
+                message: 'This data should survive page refresh',
+                random: Math.random()
+            });
+
+            StateManager.set('ui.activeTab', 'test-tab');
+            StateManager.set('chat.messages', [
+                { role: 'user', content: 'Test message 1' },
+                { role: 'assistant', content: 'Test response 1' }
+            ]);
+
+            alert('Test data saved! Click OK to refresh the page.');
+            location.reload();
+        }
+
+        // Check if we just refreshed
+        window.addEventListener('load', () => {
+            const refreshData = StateManager.get('refresh.test');
+            if (refreshData) {
+                const timeDiff = Date.now() - refreshData.timestamp;
+                showResult('refresh-result', {
+                    status: 'SUCCESS',
+                    message: '✓ Data survived page refresh!',
+                    timeSinceRefresh: `${(timeDiff / 1000).toFixed(2)} seconds`,
+                    recoveredData: refreshData,
+                    uiState: {
+                        activeTab: StateManager.get('ui.activeTab'),
+                        messageCount: StateManager.get('chat.messages')?.length
+                    }
+                });
+            }
+        });
+
+        // Auto-run basic tests on load
+        setTimeout(() => {
+            testStateManager();
+            testChatSessionManager();
+            testDatabaseAPI();
+        }, 500);
+    </script>
+</body>
+</html>

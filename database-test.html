@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #003366;
+            border-bottom: 3px solid #004C99;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #004C99;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #003366;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #004C99;
+            overflow-x: auto;
+        }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #003366, #004C99);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 2em;
+        }
+        .stat-card p {
+            margin: 0;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗄️ Database API Test Page</h1>
+        <p>Test the MySQL database integration and DatabaseAPI client methods</p>
+
+        <!-- Current User -->
+        <div class="test-section">
+            <h2>👤 Current User</h2>
+            <button onclick="testCurrentUser()">Get Current User</button>
+            <div id="user-result" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- Database Stats -->
+        <div class="test-section">
+            <h2>📊 Database Statistics</h2>
+            <button onclick="testStats()">Get Stats</button>
+            <div id="stats-result" class="result" style="display:none;"></div>
+            <div id="stats-grid" class="stats-grid" style="display:none;"></div>
+        </div>
+
+        <!-- Chat Sessions -->
+        <div class="test-section">
+            <h2>💬 Chat Sessions</h2>
+            <button onclick="testGetSessions()">Get Sessions</button>
+            <button onclick="testCreateSession()">Create New Session</button>
+            <button onclick="testSaveMessage()">Save Test Message</button>
+            <div id="sessions-result" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- Documents -->
+        <div class="test-section">
+            <h2>📄 Documents</h2>
+            <button onclick="testGetDocuments()">Get Documents</button>
+            <button onclick="testSearchDocuments()">Search "test"</button>
+            <div id="documents-result" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- Preferences -->
+        <div class="test-section">
+            <h2>⚙️ User Preferences</h2>
+            <button onclick="testGetPreferences()">Get Preferences</button>
+            <button onclick="testUpdatePreferences()">Toggle Dark Mode</button>
+            <div id="preferences-result" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- Audit Logs -->
+        <div class="test-section">
+            <h2>📋 Audit Logs</h2>
+            <button onclick="testGetLogs()">Get Recent Logs</button>
+            <div id="logs-result" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script src="database-api.js"></script>
+    <script>
+        // Helper to display results
+        function showResult(elementId, data, isError = false) {
+            const el = document.getElementById(elementId);
+            el.style.display = 'block';
+            el.innerHTML = `<pre class="${isError ? 'error' : 'success'}">${JSON.stringify(data, null, 2)}</pre>`;
+        }
+
+        // Test current user
+        async function testCurrentUser() {
+            try {
+                const user = await DatabaseAPI.getCurrentUser();
+                showResult('user-result', user);
+            } catch (error) {
+                showResult('user-result', { error: error.message }, true);
+            }
+        }
+
+        // Test stats
+        async function testStats() {
+            try {
+                const stats = await DatabaseAPI.getStats();
+                showResult('stats-result', stats);
+                
+                // Show stats in cards
+                const grid = document.getElementById('stats-grid');
+                grid.style.display = 'grid';
+                grid.innerHTML = `
+                    <div class="stat-card">
+                        <h3>${stats.users}</h3>
+                        <p>Users</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${stats.sessions}</h3>
+                        <p>Chat Sessions</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${stats.messages}</h3>
+                        <p>Messages</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${stats.documents}</h3>
+                        <p>Documents</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${stats.chunks}</h3>
+                        <p>Chunks</p>
+                    </div>
+                `;
+            } catch (error) {
+                showResult('stats-result', { error: error.message }, true);
+            }
+        }
+
+        // Test get sessions
+        async function testGetSessions() {
+            try {
+                const sessions = await DatabaseAPI.getChatSessions();
+                showResult('sessions-result', sessions);
+            } catch (error) {
+                showResult('sessions-result', { error: error.message }, true);
+            }
+        }
+
+        // Test create session
+        async function testCreateSession() {
+            try {
+                const result = await DatabaseAPI.createChatSession('Test Session ' + Date.now());
+                showResult('sessions-result', result);
+            } catch (error) {
+                showResult('sessions-result', { error: error.message }, true);
+            }
+        }
+
+        // Test save message
+        async function testSaveMessage() {
+            try {
+                // Get or create a session first
+                const sessions = await DatabaseAPI.getChatSessions();
+                let sessionId = sessions.length > 0 ? sessions[0].id : null;
+                
+                if (!sessionId) {
+                    const newSession = await DatabaseAPI.createChatSession('Auto Session');
+                    sessionId = newSession.sessionId;
+                }
+
+                const result = await DatabaseAPI.saveChatMessage(
+                    sessionId,
+                    'user',
+                    'Test message at ' + new Date().toLocaleTimeString(),
+                    100
+                );
+                showResult('sessions-result', result);
+            } catch (error) {
+                showResult('sessions-result', { error: error.message }, true);
+            }
+        }
+
+        // Test get documents
+        async function testGetDocuments() {
+            try {
+                const documents = await DatabaseAPI.getDocuments();
+                showResult('documents-result', documents);
+            } catch (error) {
+                showResult('documents-result', { error: error.message }, true);
+            }
+        }
+
+        // Test search documents
+        async function testSearchDocuments() {
+            try {
+                const results = await DatabaseAPI.searchDocuments('test');
+                showResult('documents-result', results);
+            } catch (error) {
+                showResult('documents-result', { error: error.message }, true);
+            }
+        }
+
+        // Test get preferences
+        async function testGetPreferences() {
+            try {
+                const prefs = await DatabaseAPI.getPreferences();
+                showResult('preferences-result', prefs);
+            } catch (error) {
+                showResult('preferences-result', { error: error.message }, true);
+            }
+        }
+
+        // Test update preferences
+        async function testUpdatePreferences() {
+            try {
+                const currentPrefs = await DatabaseAPI.getPreferences();
+                const darkMode = currentPrefs.theme === 'dark' ? 'light' : 'dark';
+                
+                const result = await DatabaseAPI.updatePreferences({ theme: darkMode });
+                showResult('preferences-result', result);
+            } catch (error) {
+                showResult('preferences-result', { error: error.message }, true);
+            }
+        }
+
+        // Test get logs
+        async function testGetLogs() {
+            try {
+                const logs = await DatabaseAPI.getLogs();
+                showResult('logs-result', logs);
+            } catch (error) {
+                showResult('logs-result', { error: error.message }, true);
+            }
+        }
+
+        // Auto-load stats on page load
+        window.addEventListener('load', () => {
+            testStats();
+            testCurrentUser();
+        });
+    </script>
+</body>
+</html>

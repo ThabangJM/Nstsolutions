@@ -1,0 +1,37 @@
+{
+  "name": "ai-smart-auditor",
+  "version": "1.0.0",
+  "description": "AI-powered auditing assistant for government performance monitoring",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "nodemon server/server.js"
+  },
+  "engines": {
+    "node": "18.x",
+    "npm": "9.x"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "mysql2": "^3.2.0",
+    "openai": "^4.20.1",
+    "pdf-parse": "^1.1.1",
+    "multer": "^1.4.5-lts.1",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  },
+  "keywords": [
+    "ai",
+    "auditing",
+    "government",
+    "performance-monitoring",
+    "openai"
+  ],
+  "author": "NST Solutions",
+  "license": "MIT"
+}

@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: ai-smart-auditor
+    env: node
+    region: singapore
+    plan: free
+    buildCommand: npm install && pip3 install -r requirements.txt
+    startCommand: node server/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 100
+      - key: MAX_FILE_SIZE
+        value: 10485760
+      - key: ALLOWED_FILE_TYPES
+        value: .pdf,.doc,.docx
+      - key: LOG_LEVEL
+        value: info
+      - key: PYTHON_PATH
+        value: /usr/bin/python3
+      - key: FIREBASE_PROJECT_ID
+        value: smart-ai-auditor
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        value: mmavimbela79@gmail.com
